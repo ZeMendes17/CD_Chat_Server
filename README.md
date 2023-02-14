@@ -1,3 +1,5 @@
+José Mendes
+
 # cd_chat_server
 
 This is a template repository for Computação Distribuida assignment 1
