@@ -6,18 +6,40 @@ from socket import socket
 
 class Message:
     """Message Type."""
+    def __init__(self, command):
+        self.command = command
 
+    def __str__(self):
+        return '{"command": '
     
 class JoinMessage(Message):
     """Message to join a chat channel."""
+    def __init__(self, command, channel):
+        super().__init__(command)
+        self.channel = channel
 
+    def __str__(self):
+        return super().__str__() + f'"join", "channel": "{self.channel}"' + '}'
 
 class RegisterMessage(Message):
     """Message to register username in the server."""
-
+    def __init__(self, command, username):
+        super().__init__(command)
+        self.username = username
+    
+    def __str__(self):
+        return super().__str__() + f'"register", "user": "{self.username}"' + '}'
     
 class TextMessage(Message):
     """Message to chat with other clients."""
+    def __init__(self, command, message, channel, ts):
+        super().__init__(command)
+        self.message = message
+        self.channel = channel
+        self.ts = ts
+
+    def __str__(self):
+        return super().__str__() + f'"message", "message": "{self.message}", "channel": "{self.channel}", "ts": "{self.ts}"' + '}'
 
 
 class CDProto:
