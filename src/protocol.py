@@ -32,14 +32,14 @@ class RegisterMessage(Message):
     
 class TextMessage(Message):
     """Message to chat with other clients."""
-    def __init__(self, command, message, channel, ts):
+    def __init__(self, command, message, channel, timestamp):
         super().__init__(command)
         self.message = message
         self.channel = channel
-        self.ts = ts
+        self.timestamp = timestamp
 
     def __str__(self):
-        return super().__str__() + f'"message", "message": "{self.message}", "channel": "{self.channel}", "ts": "{self.ts}"' + '}'
+        return super().__str__() + f'"message", "message": "{self.message}", "channel": "{self.channel}", "ts": "{self.timestamp}"' + '}'
 
 
 class CDProto:
@@ -49,21 +49,32 @@ class CDProto:
     def register(cls, username: str) -> RegisterMessage:
         """Creates a RegisterMessage object."""
 
+        return RegisterMessage('register', username)
+
     @classmethod
     def join(cls, channel: str) -> JoinMessage:
         """Creates a JoinMessage object."""
+
+        return JoinMessage('join', channel)
 
     @classmethod
     def message(cls, message: str, channel: str = None) -> TextMessage:
         """Creates a TextMessage object."""
 
+        timestamp = int(datetime.now().timestamp()) # used to get the time stamp
+        return TextMessage('message', message, channel, timestamp)
+
     @classmethod
     def send_msg(cls, connection: socket, msg: Message):
         """Sends through a connection a Message object."""
+        # has to see what time of message it is and use the classes above to send the messages
+        # using if probably
 
     @classmethod
     def recv_msg(cls, connection: socket) -> Message:
         """Receives through a connection a Message object."""
+        # has to do the opposite of the function above, transforms message received to
+        # be sent to other clients on the same channel
 
 
 class CDProtoBadFormat(Exception):
