@@ -17,7 +17,7 @@ class Server:
         self.sock.listen(5) # tamanho da fila de espera
         self.sel = selectors.DefaultSelector() # selector
         self.sel.register(self.sock, selectors.EVENT_READ, self.accept) 
-        self.activeClients = [] # lista para guardar os clientes atualmente ativos para envio de mensagens
+        self.name = {} # dicionario que guarda o nome de cada conn
         self.clientChannels = {} # dicionario que guarda os channels de cada user
 
         print("Server has been initialized")
@@ -47,25 +47,32 @@ class Server:
 
             if command == "register":
                 user = data_info["user"]
+
                 if user == None:
                     print("Cannot register user. Invalid User")
 
                 else:
-                    self.clientChannels[conn] = []
-                    self.activeClients.append(conn)
+                    self.name[conn] = user
+                    self.clientChannels[conn] = [None] # indicates that it is in the base channel
                     print('User: ' + user + ' register with success')
+                    logging.debug(f"{user} has joined the chat")
 
             elif command == "join":
                 channel = data_info["channel"]
-                client_channels = self.clientChannels[conn]
+                client_channels = self.clientChannels.get(conn)
 
                 if channel == None:
                     print("User cannot join, invalid channel")
                 elif channel in client_channels:
                     print("User already in " + channel)
                 else:
-                    print("User joined: " + channel)
-                    self.clientChannels[conn].append(channel)
+                    if client_channels == [None]:
+                        self.clientChannels[conn] = [channel]
+                    else:
+                        self.clientChannels[conn].append(channel)
+
+                    print(f"User joined: {channel}")
+                    logging.debug(f"{self.name[conn]} joined: {channel}")
 
             elif command == "message": 
                 # needs to send the message
@@ -75,19 +82,21 @@ class Server:
                 else:
                     # sends message to users in the same channel
                     channel = data_info["channel"] # sends to this channel or all of them?
-                    for user in self.activeClients:
-                        if user != conn and self.clientChannels[user] != None:
-                            user_channels = self.clientChannels[user]
-                            if channel in user_channels:
-                                CDProto.send_msg(user, data)
+                    msgToSend = CDProto.message(f'{self.name[conn]}>> {message}')
+                    print(f'{self.name[conn]} (channel: {channel}) -> {message}')
+                    logging.debug(f'{self.name[conn]} (channel: {channel}) -> {message}')
 
+                    for user in self.clientChannels.keys():
+                        if user != conn and self.clientChannels[user] != None:
+                            if channel in self.clientChannels[user]:
+                                CDProto.send_msg(user, msgToSend)
 
             else:
-                print("Invalid command")
+                print("Invalid command") # nao vem para aqui quase de certeza
 
 
         else:
-            print("Something went wrong. C  losing...")
+            print("Something went wrong. Closing...")
             print('closing', conn)
             self.sel.unregister(conn)
             conn.close()

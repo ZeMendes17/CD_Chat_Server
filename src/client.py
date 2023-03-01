@@ -21,7 +21,7 @@ class Client:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.selector = selectors.DefaultSelector()
         self.name = name
-        self.channel = ""
+        self.channel = None
         self.host = 'localhost' # host and port used to connect to server
         self.port = 2000
         self.clientChannels = [] # lista que guarda os channels do client
@@ -55,6 +55,8 @@ class Client:
             print(f'Unregistering {self.name}')
             self.selector.unregister(self.sock)
             self.sock.close()
+            print('Closing chat...')
+            sys.exit()
         # fazer para join e message
         elif message.split(" ")[0] == "/join" and len(message.split(" ")) == 2:
             self.channel = message.split(" ")[1]
@@ -77,7 +79,7 @@ class Client:
         while True:
             sys.stdout.write(self.name + ">")
             sys.stdout.flush()
-            events = self.selector.select()
-            for key, mask in events:
+
+            for key, mask in self.selector.select():
                 callback = key.data
                 callback(key.fileobj, mask)
