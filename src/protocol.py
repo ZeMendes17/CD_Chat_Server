@@ -85,10 +85,7 @@ class CDProto:
             raise CDProtoBadFormat()
 
         miniHeader = len(message).to_bytes(2, "big")
-        try:
-            connection.sendall(miniHeader + message) # sends message
-        except IOError as err:
-            print("Something went wrong")
+        connection.sendall(miniHeader + message) # sends message
 
 
 
@@ -99,11 +96,7 @@ class CDProto:
         # be sent to other clients on the same channel
         miniHeader = int.from_bytes(connection.recv(2), 'big')
         message = connection.recv(miniHeader).decode("utf-8")
-        try:
-            message = json.loads(message)
-        except json.JSONDecodeError as err:
-                raise CDProtoBadFormat(message)
-        
+        message = json.loads(message)
         msgCommand = message["command"]
         
         if msgCommand == "register":
@@ -116,12 +109,12 @@ class CDProto:
 
         elif msgCommand == "message":
             msg = message["message"]
-
-            if message.get("channel"):
-                CDProto.message(msg, message["channel"])
+            channel = message["channel"]
+            timestamp = message["ts"]
+            if channel == None:
+                return CDProto.message(msg)
             else:
-                CDProto.message(msg)
-
+                return CDProto.message(msg, channel)
         else:
             raise CDProtoBadFormat()
 

@@ -100,6 +100,12 @@ class Server:
         else:
             # print("Something went wrong. Closing...")
             print('Closing', conn)
+            try:
+                logging.debug(f'{self.name[conn]} left the chat')
+                del self.name[conn]
+                del self.clientChannels[conn]
+            except KeyError as err:
+                self.name = {}
             self.sel.unregister(conn)
             conn.close()
 
