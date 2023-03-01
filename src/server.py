@@ -82,22 +82,24 @@ class Server:
                 else:
                     # sends message to users in the same channel
                     channel = data_info["channel"] # sends to this channel or all of them?
-                    msgToSend = CDProto.message(f'{self.name[conn]}>> {message}')
+                    msgToSend = CDProto.message(f'\n{self.name[conn]}>> {message}')
                     print(f'{self.name[conn]} (channel: {channel}) -> {message}')
                     logging.debug(f'{self.name[conn]} (channel: {channel}) -> {message}')
 
                     for user in self.clientChannels.keys():
-                        if user != conn and self.clientChannels[user] != None:
-                            if channel in self.clientChannels[user]:
-                                CDProto.send_msg(user, msgToSend)
+                        if channel == "" and user != conn:
+                            CDProto.send_msg(user, msgToSend)
+
+                        elif user != conn and channel in self.clientChannels[user]:
+                            CDProto.send_msg(user, msgToSend)
 
             else:
                 print("Invalid command") # nao vem para aqui quase de certeza
 
 
         else:
-            print("Something went wrong. Closing...")
-            print('closing', conn)
+            # print("Something went wrong. Closing...")
+            print('Closing', conn)
             self.sel.unregister(conn)
             conn.close()
 

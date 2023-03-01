@@ -21,7 +21,7 @@ class Client:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.selector = selectors.DefaultSelector()
         self.name = name
-        self.channel = None
+        self.channel = ""
         self.host = 'localhost' # host and port used to connect to server
         self.port = 2000
         self.clientChannels = [] # lista que guarda os channels do client
