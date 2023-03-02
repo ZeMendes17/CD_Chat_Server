@@ -40,9 +40,9 @@ class TextMessage(Message):
 
     def __str__(self):
         if self.channel == None:
-            return super().__str__() + f'"message", "message": "{self.message}", "ts": "{self.timestamp}"' + '}'
+            return super().__str__() + f'"message", "message": "{self.message}", "ts": {self.timestamp}' + '}'
         else:
-            return super().__str__() + f'"message", "message": "{self.message}", "channel": "{self.channel}", "ts": "{self.timestamp}"' + '}'
+            return super().__str__() + f'"message", "message": "{self.message}", "channel": "{self.channel}", "ts": {self.timestamp}' + '}'
 
 class CDProto:
     """Computação Distribuida Protocol."""
@@ -69,7 +69,7 @@ class CDProto:
         # has to see what time of message it is and use the classes above to send the messages
 
         if type(msg) is TextMessage:
-            message = { "command": "message", "message": f"{msg.message}", "channel": f"{msg.channel}", "ts": f"{msg.timestamp}" }
+            message = { "command": "message", "message": f"{msg.message}", "channel": f"{msg.channel}", "ts": msg.timestamp }
             message = json.dumps(message).encode("utf-8")
 
         elif type(msg) is RegisterMessage:
@@ -85,8 +85,10 @@ class CDProto:
             raise CDProtoBadFormat()
 
         miniHeader = len(message).to_bytes(2, "big")
-        connection.sendall(miniHeader + message) # sends message
-
+        try:
+            connection.sendall(miniHeader + message) # sends message
+        except IOError as err:
+            print("Something went wrong")
 
 
     @classmethod
