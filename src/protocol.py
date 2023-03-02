@@ -95,8 +95,13 @@ class CDProto:
         # has to do the opposite of the function above, transforms message received to
         # be sent to other clients on the same channel
         miniHeader = int.from_bytes(connection.recv(2), 'big')
-        message = connection.recv(miniHeader).decode("utf-8")
-        message = json.loads(message)
+        message_info = connection.recv(miniHeader).decode("utf-8")
+
+        try:
+            message = json.loads(message_info)
+        except json.JSONDecodeError as err:
+            raise CDProtoBadFormat(message_info)
+
         msgCommand = message["command"]
         
         if msgCommand == "register":
@@ -109,12 +114,10 @@ class CDProto:
 
         elif msgCommand == "message":
             msg = message["message"]
-            channel = message["channel"]
-            timestamp = message["ts"]
-            if channel == None:
-                return CDProto.message(msg)
+            if message.get("channel"):
+                return CDProto.message(msg, message["channel"])
             else:
-                return CDProto.message(msg, channel)
+                return CDProto.message(msg)
         else:
             raise CDProtoBadFormat()
 
