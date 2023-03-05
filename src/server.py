@@ -26,6 +26,7 @@ class Server:
 
     def accept(self, sock, mask):
         conn, addr = sock.accept()  # Should be ready # servidor espera por clientes, o servidor bloqueia e só desbloqueia quando alguem se ligar
+        print("New client has arrived!")
         print('accepted', conn, 'from', addr)
         conn.setblocking(False)
         self.sel.register(conn, selectors.EVENT_READ, self.read)
@@ -74,6 +75,23 @@ class Server:
                     print(f"User joined: {channel}")
                     logging.debug(f"{self.name[conn]} joined: {channel}")
 
+            elif command == "unjoin":
+                channel = data_info["channel"]
+                client_channels = self.clientChannels.get(conn)
+
+                if channel == None:
+                    print("User cannot unjoin, invalid channel")
+                elif channel in client_channels:
+                    if client_channels == [channel]:
+                        self.clientChannels[conn] = [None]
+                    else:
+                        self.clientChannels[conn].remove(channel)
+
+                    print(f"User unjoined: {channel}")
+                    logging.debug(f"{self.name[conn]} unjoined: {channel}")
+                else:
+                    print("User is not in " + channel)
+
             elif command == "message": 
                 # needs to send the message
                 message = data_info["message"]
@@ -82,7 +100,7 @@ class Server:
                 else:
                     # sends message to users in the same channel
                     channel = data_info["channel"] # sends to this channel or all of them?
-                    msgToSend = CDProto.message(f'\n{self.name[conn]}>> {message}')
+                    msgToSend = CDProto.message(f'{self.name[conn]}>> {message}')
                     print(f'{self.name[conn]} (channel: {channel}) -> {message}')
                     logging.debug(f'{self.name[conn]} (channel: {channel}) -> {message}')
 

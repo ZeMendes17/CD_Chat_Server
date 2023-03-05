@@ -20,6 +20,15 @@ class JoinMessage(Message):
 
     def __str__(self):
         return super().__str__() + f'"join", "channel": "{self.channel}"' + '}'
+    
+class UnJoinMessage(Message):
+    """Message to unjoin a chat channel."""
+    def __init__(self, command, channel):
+        super().__init__(command)
+        self.channel = channel
+
+    def __str__(self):
+        return super().__str__() + f'"unjoin", "channel": "{self.channel}"' + '}'
 
 class RegisterMessage(Message):
     """Message to register username in the server."""
@@ -56,6 +65,11 @@ class CDProto:
     def join(cls, channel: str) -> JoinMessage:
         """Creates a JoinMessage object."""
         return JoinMessage('join', channel)
+    
+    @classmethod
+    def unjoin(cls, channel: str) -> UnJoinMessage:
+        """Creates an UnJoinMessage object."""
+        return UnJoinMessage('unjoin', channel)
 
     @classmethod
     def message(cls, message: str, channel: str = None) -> TextMessage:
@@ -78,6 +92,10 @@ class CDProto:
 
         elif type(msg) is JoinMessage:
             message = { "command": "join", "channel": f"{msg.channel}" }
+            message = json.dumps(message).encode("utf-8")
+
+        elif type(msg) is UnJoinMessage:
+            message = { "command": "unjoin", "channel": f"{msg.channel}" }
             message = json.dumps(message).encode("utf-8")
 
         else:
@@ -113,6 +131,10 @@ class CDProto:
         elif msgCommand == "join":
             channel = message["channel"]
             return CDProto.join(channel)
+        
+        elif msgCommand == "unjoin":
+            channel = message["channel"]
+            return CDProto.unjoin(channel)
 
         elif msgCommand == "message":
             msg = message["message"]

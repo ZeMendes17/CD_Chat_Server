@@ -68,6 +68,19 @@ class Client:
                 print(f"{self.name} has joined {self.channel}")
                 joinMessage = CDProto.join(self.channel)
                 CDProto.send_msg(self.sock, joinMessage)
+
+        elif message.split(" ")[0] == "/unjoin" and len(message.split(" ")) == 2:
+            channel = message.split(" ")[1]
+
+            # removes user from the channel
+            if channel in self.clientChannels:
+                print(f'{self.name} has left {channel}. To join again do: /join {channel}')
+                if self.channel == channel:
+                    self.channel = "";
+                self.clientChannels.remove(channel)
+            else:
+                print(f'User is not in channel "{channel}". Impossible to unjoin')
+
         else:
             normalMessage = CDProto.message(message, self.channel)
             CDProto.send_msg(self.sock, normalMessage)
@@ -77,7 +90,7 @@ class Client:
         """Loop indefinetely."""
         
         while True:
-            sys.stdout.write(self.name + ">")
+            sys.stdout.write(">")
             sys.stdout.flush()
 
             for key, mask in self.selector.select():
